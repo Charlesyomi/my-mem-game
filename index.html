@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <title>mem game</title>
+</head>
+<body>
+    <header>
+        <h1>a simple memory game</h1>
+        
+    </header>
+    <main>
+        <p>study the numbers as they appear and fill them in in the correct order</p>
+        <button id="start-btn" onclick="allItems()" >start game</button>
+        <!-- TODO: change the start button to pause button once it has been clicked -->
+
+
+        <canvas id="canvas" width="200" height="200">
+            <p>oops looks like your browser does'nt support canvas, not to worry updates are on the way</p>
+            <!-- TODO: make fields in here to suport acess with assitive technologies -->
+        </canvas>
+
+        
+        <form action="" name="playForm">
+            <input type="number" name="userPlay" id="userPlay" >
+            <input type="submit" value="submit" id = "submit-btn" disabled>
+        </form>
+
+
+        <ul id="plays-list">
+
+        </ul>
+
+        <button id="validate-btn" disabled>confirm my order</button>
+        <button id= "clear-play">Clear all</button>
+        <button id = "clear-last">Clear</button>
+
+        <!-- <h2>score<progress max = "100" value="50"><span id="players_score">0</span></progress></h2> -->
+    </main>
+
+    <script>
+
+
+        const playerOrder = [];
+        const playForm = document.querySelector("form");
+        const validateBtn = document.getElementById('validate-btn');
+        const itemsOrder = [];
+        const playsList = document.getElementById('plays-list');
+        const startBtn = document.getElementById('start-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const userPlay = document.getElementById('userPlay');
+
+
+
+        // startBtn.addEventListener('click',generateItems());
+    
+    // randomize the  order of items
+
+       function generateItems(){
+           clearAllPlays()
+            for(let i=0;i<4;i++){
+                const randomItem = Math.floor(Math.random()*10);  // a random number between 0 and 9
+                itemsOrder[i] = randomItem;
+            };
+            console.log(itemsOrder)
+        }
+    
+
+    // animate each item on the canvas
+        function animateItem(item,strokeStyle ='blue',fillStyle = 'cornflowerblue'){
+
+            let id = null;
+            id = setInterval(drawItem,20);
+            let a = 12;
+
+
+            // draw each item on the canvas
+            function drawItem(){
+                if (a >= 72){
+                    clearInterval(id)
+                }
+                else{
+                    const canvas= document.getElementById('canvas');
+                    const canvasContext = canvas.getContext('2d');
+                    // canvasContext.globalCompositeOperation = 'save'
+                    canvasContext.clearRect(0,0,canvas.width,canvas.height);
+                    canvasContext.beginPath()
+
+                    // draw the layers on top of the text to create a 3d feel
+                    // let i;
+                    // for(i=0;i<6;i++){
+                    //     canvasContext.fillText(item,canvas.clientWidth/2 - i,canvas.clientHeight/2 -i ,canvas.clientWidth-20);
+                    //     canvasContext.arc(canvas.clientWidth/2 -i ,canvas.clientHeight/2 - i,a,0,2*Math.PI);
+
+                    // }
+
+                    canvasContext.strokeStyle = strokeStyle//'blue';
+                    canvasContext.fillStyle = fillStyle//'cornflowerblue';
+                    canvasContext.font = `${a}px Arial`;
+
+
+                    canvasContext.arc(canvas.clientWidth/2,canvas.clientHeight/2,a,0,2*Math.PI)
+                    canvasContext.stroke()
+
+                    canvasContext.textAlign = "center"
+                    canvasContext.textBaseline = "middle"
+                    canvasContext.fillText(item,canvas.clientWidth/2,canvas.clientHeight/2,canvas.clientWidth-20);
+                    canvasContext.strokeText(item,canvas.clientWidth/2, canvas.clientHeight/2,canvas.clientWidth-20);
+                
+                    a += (2)
+                }    
+            }
+            
+        }
+
+        // show each item sequentially
+        const delay = async (ms=1000) => new Promise(resolve => setTimeout(resolve,ms));
+
+        async function allItems(){
+            // disable the start button first to prevent multiple item generation
+            
+            startBtn.disabled = true
+            
+
+
+
+            generateItems()
+            for(let i=0;i<itemsOrder.length;i++){
+                animateItem(itemsOrder[i]);
+                await delay(1000)
+             }
+
+
+             animateItem('GO','green','green');
+            
+            
+            userPlay.disabled = false;
+            userPlay.focus();
+            // userPlay.setAttribute('autofocus','autofocus')
+            submitBtn.disabled = false;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // enable and disable validation button
+        function validateBtnState(){
+            if(playerOrder.length>0){
+            // console.log("i am aware of this block");
+                validateBtn.disabled = false;
+            }
+            else{
+                validateBtn.disabled = true;
+                // console.log("i am aware of this code block")
+            }
+        }
+        
+    // store the players inputs
+        playForm.addEventListener("submit",function storePlay(event){
+            event.preventDefault();
+            
+            // let userPlay = document.getElementsByName('userPlay')[0]
+            playerOrder.push(userPlay.value);
+            console.log(playerOrder);
+            validateBtnState();
+            displayPlay(userPlay.value);
+            userPlay.value=''
+        })
+        
+
+    // display the players inputs
+        function displayPlay(a){
+            const playField = document.createElement('li');
+
+            playField.innerHTML = a;
+            playsList.appendChild(playField)
+
+        }
+
+
+    // check if the player won or lost
+        validateBtn.onclick = () =>{
+            let trueorder = true;
+            
+            // start by checking if the number of plays match the number of items, if true proceed to check if both the itemslist and playlist have an identity mapping
+            if(playerOrder.length == itemsOrder.length){
+                for(let i=0 ; i<playerOrder.length; i++){
+                    if (playerOrder[i] != itemsOrder[i]){
+                        trueorder = false;
+                        break
+                    }
+                }
+            }
+
+            else{
+                trueorder = false
+            };
+            
+            
+            if(trueorder === true){
+                console.log("you win");
+                animateItem('YOU WIN','green','green');
+                // clearAllPlays();
+                
+                validateBtn.disabled = true
+                submitBtn.disabled = true
+                startBtn.disabled = false;
+                userPlay.disabled = true
+            }
+            else{
+                console.log("you loose");
+                animateItem('YOU LOOSE','red','red');
+            }
+        }
+
+    //  clear all inputs for the player
+        function clearAllPlays(){
+            playerOrder.length = 0;
+            console.log(playerOrder);
+            validateBtnState();
+            playsList.innerHTML=""
+        }
+        document.getElementById("clear-play").addEventListener("click",clearAllPlays);
+
+    // clear one player input starting from the most recent
+        function deleteRecentplayField(){
+            console.log('i am aware of this code block');
+            const recentplayField = playsList.lastElementChild;
+            playsList.removeChild(recentplayField);
+        }
+
+        document.getElementById("clear-last").addEventListener("click",()=>{
+            playerOrder.pop();
+            console.log(playerOrder);
+            validateBtnState();
+            deleteRecentplayField();
+        })
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // for (let item in playerOrder){
+    //     if (playerOrder[item ] != itemsOrder[item]){
+    //         trueorder = false
+    //         break
+    //     }
+    // };
+            
+
+    // const itemsamount = Math.floor(Math.random()*3)+ 3;  // randomly select an integer between 3 and 5
+        // console.log(itemsamount)
+    </script>
+</body>
+</html>
+
+
+
